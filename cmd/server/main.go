@@ -21,10 +21,13 @@ func main() {
 	if uri == "" {
 		log.Fatal("You must set your 'MONGODB_URI' environment variable")
 	}
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "4096"
+	}
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "eukalipto"
 	}
 
 	// Conectar Mongo
@@ -33,7 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db := client.Database("manga-viwer")
+	db := client.Database(dbName)
 
 	// Creo router
 	app := http.NewRouter(db)
