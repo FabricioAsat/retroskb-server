@@ -18,7 +18,7 @@ func NewMangaService(mgRepo domain.MangaRepo) *MangaService {
 	return &MangaService{mgRepo: mgRepo}
 }
 
-func (s *MangaService) Create(ctx context.Context, manga *domain.Manga) error {
+func (s *MangaService) Create(ctx context.Context, manga *domain.Manga, userID string) error {
 	// 1.0 Valido que el estado esté contemplado
 	if !domain.IsValidMangaState(manga.State) {
 		return errors.New("Invalid manga state")
@@ -28,6 +28,12 @@ func (s *MangaService) Create(ctx context.Context, manga *domain.Manga) error {
 	if manga.Name == "" {
 		return errors.New("Name cannot be empty")
 	}
+	// 1.2 Asigno el userID
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	manga.UserID = objID
 
 	return s.mgRepo.Create(ctx, manga)
 }
@@ -36,8 +42,12 @@ func (s *MangaService) GetByID(ctx context.Context, id primitive.ObjectID) (*dom
 	return s.mgRepo.GetByID(ctx, id)
 }
 
-func (s *MangaService) ListAll(ctx context.Context) ([]domain.Manga, error) {
-	return s.mgRepo.List(ctx)
+func (s *MangaService) ListAll(ctx context.Context, userID string) ([]domain.Manga, error) {
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.mgRepo.List(ctx, objID)
 }
 
 func (s *MangaService) Update(ctx context.Context, id primitive.ObjectID, updates bson.M) error {

@@ -19,39 +19,51 @@ func NewMangaHandler(svc *service.MangaService) *MangaHandler {
 }
 
 // Structs para create & update
-type CreateMangaRequest struct {
-	Name    string            `json:"name"`
-	State   domain.MangaState `json:"state"`
-	Chapter uint16            `json:"chapter"`
-	Image   []byte            `json:"image"` // Mongo deja hasta 16MB por data
-	Link    string            `json:"link"`
+type createMangaRequest struct {
+	Name        string            `json:"name"`
+	State       domain.MangaState `json:"state"`
+	Chapter     uint16            `json:"chapter"`
+	Image       []byte            `json:"image"` // Mongo deja hasta 16MB por data
+	Link        string            `json:"link"`
+	Description string            `json:"description"`
+	Genre       []string          `json:"genre"`
 }
-type UpdateMangaRequest struct {
-	Name    *string            `json:"name,omitempty"`
-	State   *domain.MangaState `json:"state,omitempty"`
-	Chapter *uint16            `json:"chapter,omitempty"`
-	Image   *[]byte            `json:"image,omitempty"`
-	Link    *string            `json:"link,omitempty"`
+type updateMangaRequest struct {
+	Name        *string            `json:"name,omitempty"`
+	State       *domain.MangaState `json:"state,omitempty"`
+	Chapter     *uint16            `json:"chapter,omitempty"`
+	Image       *[]byte            `json:"image,omitempty"`
+	Link        *string            `json:"link,omitempty"`
+	Description *string            `json:"description,omitempty"`
+	Genre       *[]string          `json:"genre,omitempty"`
 }
 
 // * Comienzan los métodos de la API
 func (h *MangaHandler) CreateManga(c *fiber.Ctx) error {
-	var req CreateMangaRequest
+	var req createMangaRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	manga := &domain.Manga{
-		ID:        primitive.NewObjectID(),
-		Name:      req.Name,
-		State:     req.State,
-		Chapter:   req.Chapter,
-		Image:     req.Image,
-		Link:      req.Link,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:          primitive.NewObjectID(),
+		Name:        req.Name,
+		State:       req.State,
+		Chapter:     req.Chapter,
+		Image:       req.Image,
+		Link:        req.Link,
+		Description: req.Description,
+		Genre:       req.Genre,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
-	if err := h.svc.Create(c.Context(), manga); err != nil {
+
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	if err := h.svc.Create(c.Context(), manga, userID); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
@@ -59,7 +71,12 @@ func (h *MangaHandler) CreateManga(c *fiber.Ctx) error {
 }
 
 func (h *MangaHandler) GetMangas(c *fiber.Ctx) error {
-	mangas, err := h.svc.ListAll(c.Context())
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	mangas, err := h.svc.ListAll(c.Context(), userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -89,7 +106,7 @@ func (h *MangaHandler) UpdateManga(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	var req UpdateMangaRequest
+	var req updateMangaRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -110,6 +127,12 @@ func (h *MangaHandler) UpdateManga(c *fiber.Ctx) error {
 	}
 	if req.Link != nil {
 		updates["link"] = *req.Link
+	}
+	if req.Description != nil {
+		updates["description"] = *req.Description
+	}
+	if req.Genre != nil {
+		updates["genre"] = *req.Genre
 	}
 	updates["updated_at"] = time.Now()
 

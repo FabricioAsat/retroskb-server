@@ -30,12 +30,14 @@ func (r *MongoMangaRepo) GetByID(ctx context.Context, id primitive.ObjectID) (*d
 	return &manga, nil
 }
 
-func (r *MongoMangaRepo) List(ctx context.Context) ([]domain.Manga, error) {
+func (r *MongoMangaRepo) List(ctx context.Context, userID primitive.ObjectID) ([]domain.Manga, error) {
+	filter := bson.M{"user_id": userID}
 	var mangas []domain.Manga
-	cursor, err := r.db.Find(ctx, bson.M{})
+	cursor, err := r.db.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 	if err := cursor.All(ctx, &mangas); err != nil {
 		return nil, err
 	}

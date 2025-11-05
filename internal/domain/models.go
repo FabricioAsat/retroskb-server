@@ -17,14 +17,25 @@ const (
 )
 
 type Manga struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
-	Name      string             `bson:"name,omitempty" json:"name"`
-	State     MangaState         `bson:"state" json:"state"`
-	Chapter   uint16             `bson:"chapter,min=0" json:"chapter"` // cap en el que lo dejé
-	Image     []byte             `bson:"image" json:"image"`
-	Link      string             `bson:"link" json:"link"` // link donde lo miro
-	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
-	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	Name        string             `bson:"name,omitempty" json:"name"`
+	State       MangaState         `bson:"state" json:"state"`
+	Chapter     uint16             `bson:"chapter,min=0" json:"chapter"` // cap en el que lo dejé
+	Image       []byte             `bson:"image" json:"image"`
+	Link        string             `bson:"link" json:"link"` // link donde lo miro
+	Description string             `bson:"description" json:"description"`
+	Genre       []string           `bson:"genre" json:"genre"`
+	UserID      primitive.ObjectID `bson:"user_id,omitempty" json:"user_id"`
+	CreatedAt   time.Time          `bson:"created_at" json:"created_at"`
+	UpdatedAt   time.Time          `bson:"updated_at" json:"updated_at"`
+}
+
+type User struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	Username    string             `bson:"username,omitempty" json:"username"`
+	Email       string             `bson:"email,omitempty" json:"email"`
+	Password    string             `bson:"password,omitempty" json:"-"`
+	DateOfBirth time.Time          `bson:"date_of_birth,omitempty" json:"date_of_birth"`
 }
 
 func IsValidMangaState(s MangaState) bool {
