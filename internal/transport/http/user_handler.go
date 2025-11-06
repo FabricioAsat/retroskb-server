@@ -77,7 +77,7 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"token": tokenString})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": fiber.Map{"token": tokenString}})
 }
 
 // GET /me

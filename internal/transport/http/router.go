@@ -39,17 +39,19 @@ func NewRouter(db *mongo.Database) *fiber.App {
 		return c.SendString("OK")
 	})
 
-	// Rutas del user
+	// Rutas públicas
 	auth := app.Group("/auth")
 	auth.Post("/register", userHandler.Register)
 	auth.Post("/login", userHandler.Login)
 
 	// Rutas protegidas
 	protected := app.Group("/", JWTMiddleware())
+
+	// /me requiere token
 	protected.Get("/me", userHandler.Me)
 
-	// Group de mangas
-	mangaGroup := app.Group("/mangas")
+	// mangas requiere token
+	mangaGroup := protected.Group("/mangas")
 	mangaGroup.Post("/", mangaHandler.CreateManga)
 	mangaGroup.Get("/", mangaHandler.GetMangas)
 	mangaGroup.Get("/:id", mangaHandler.GetManga)
