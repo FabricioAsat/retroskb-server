@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -9,6 +10,8 @@ import (
 )
 
 func JWTMiddleware() fiber.Handler {
+	fmt.Println("Resetando JWT Middleware")
+
 	secret := []byte(os.Getenv(("JWT_SECRET")))
 	if secret == nil {
 		secret = []byte("en-mi-opinion-profesional-es-timpo-para-PANICO")
@@ -17,12 +20,12 @@ func JWTMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing Authorization header"})
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing Authorization header 1"})
 		}
 
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid Authorization header"})
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid Authorization header 2"})
 		}
 
 		tokenString := parts[1]

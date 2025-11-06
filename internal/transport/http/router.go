@@ -5,52 +5,47 @@ import (
 	"view-list/internal/service"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func NewRouter(db *mongo.Database) *fiber.App {
 	app := fiber.New()
 
-	// CORS Policy
-	app.Use(func(c *fiber.Ctx) error {
-		c.Set("Access-Control-Allow-Origin", "*")
-		c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if c.Method() == "OPTIONS" {
-			return c.SendStatus(fiber.StatusOK)
-		}
-		return c.Next()
-	})
+	// --- CORS ---
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+		AllowHeaders: "Content-Type, Authorization",
+	}))
 
-	// Repository
+	// --- Repository ---
 	mangaRepo := repository.NewMangaRepo(db)
 	userRepo := repository.NewUserRepo(db)
 
-	// Service
+	// --- Services ---
 	mangaSvc := service.NewMangaService(mangaRepo)
 	userSvc := service.NewUserService(userRepo)
 
-	// Handler
+	// --- Handlers ---
 	mangaHandler := NewMangaHandler(mangaSvc)
 	userHandler := NewUserHandler(userSvc)
 
-	// Health route
+	// --- Health check ---
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
 
-	// Rutas públicas
+	// --- Public routes ---
 	auth := app.Group("/auth")
 	auth.Post("/register", userHandler.Register)
 	auth.Post("/login", userHandler.Login)
 
-	// Rutas protegidas
+	// --- Protected routes ---
 	protected := app.Group("/", JWTMiddleware())
-
-	// /me requiere token
 	protected.Get("/me", userHandler.Me)
 
-	// mangas requiere token
+	// --- Mangas (protected) ---
 	mangaGroup := protected.Group("/mangas")
 	mangaGroup.Post("/", mangaHandler.CreateManga)
 	mangaGroup.Get("/", mangaHandler.GetMangas)
