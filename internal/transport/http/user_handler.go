@@ -35,7 +35,7 @@ type loginRequest struct {
 func (h *UserHandler) Register(c *fiber.Ctx) error {
 	var req registerRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request payload"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error(), "test": req})
 	}
 
 	user := &domain.User{
