@@ -22,10 +22,10 @@ func NewUserHandler(service domain.UserService) *UserHandler {
 
 // Helper struct para register y login
 type registerRequest struct {
-	Username    string    `json:"username"`
-	Password    string    `json:"password"`
-	Email       string    `json:"email"`
-	DateOfBirth time.Time `json:"date_of_birth"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	Email       string `json:"email"`
+	DateOfBirth string `json:"date_of_birth"`
 }
 type loginRequest struct {
 	Email    string `json:"email"`
@@ -41,15 +41,20 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error(), "test": req})
 	}
 
+	date, err := time.Parse("2006-01-02", req.DateOfBirth)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid date format"})
+	}
+
 	user := &domain.User{
 		ID:          primitive.NewObjectID(),
 		Username:    req.Username,
 		Password:    req.Password,
 		Email:       req.Email,
-		DateOfBirth: req.DateOfBirth,
+		DateOfBirth: date,
 	}
 
-	err := h.service.Register(c.Context(), user)
+	err = h.service.Register(c.Context(), user)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
