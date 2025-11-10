@@ -21,7 +21,7 @@ type Manga struct {
 	Name        string             `bson:"name,omitempty" json:"name"`
 	State       MangaState         `bson:"state" json:"state"`
 	Chapter     uint16             `bson:"chapter,min=0" json:"chapter"` // cap en el que lo dejé
-	Image       []byte             `bson:"image" json:"image"`
+	Image       string             `bson:"image" json:"image"`
 	Link        string             `bson:"link" json:"link"` // link donde lo miro
 	Description string             `bson:"description" json:"description"`
 	Genre       []string           `bson:"genre" json:"genre"`

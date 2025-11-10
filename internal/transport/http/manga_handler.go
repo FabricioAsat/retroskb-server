@@ -23,7 +23,7 @@ type createMangaRequest struct {
 	Name        string            `json:"name"`
 	State       domain.MangaState `json:"state"`
 	Chapter     uint16            `json:"chapter"`
-	Image       []byte            `json:"image"` // Mongo deja hasta 16MB por data
+	Image       string            `json:"image"` // Mongo deja hasta 16MB por data
 	Link        string            `json:"link"`
 	Description string            `json:"description"`
 	Genre       []string          `json:"genre"`
@@ -32,7 +32,7 @@ type updateMangaRequest struct {
 	Name        *string            `json:"name,omitempty"`
 	State       *domain.MangaState `json:"state,omitempty"`
 	Chapter     *uint16            `json:"chapter,omitempty"`
-	Image       *[]byte            `json:"image,omitempty"`
+	Image       *string            `json:"image,omitempty"`
 	Link        *string            `json:"link,omitempty"`
 	Description *string            `json:"description,omitempty"`
 	Genre       *[]string          `json:"genre,omitempty"`
