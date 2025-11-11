@@ -11,9 +11,8 @@ type MangaState string
 const (
 	MangaStateReading   MangaState = "reading"
 	MangaStateCompleted MangaState = "completed"
-	MangaStateAbandoned MangaState = "abandoned"
-	MangaStateDeleted   MangaState = "deleted"
 	MangaStateOnHold    MangaState = "on hold"
+	MangaStateDropped   MangaState = "dropped"
 )
 
 type Manga struct {
@@ -42,8 +41,7 @@ func IsValidMangaState(s MangaState) bool {
 	switch s {
 	case MangaStateReading,
 		MangaStateCompleted,
-		MangaStateAbandoned,
-		MangaStateDeleted,
+		MangaStateDropped,
 		MangaStateOnHold:
 		return true
 	}
