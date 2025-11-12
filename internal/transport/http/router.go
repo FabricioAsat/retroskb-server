@@ -1,6 +1,7 @@
 package http
 
 import (
+	"path/filepath"
 	"view-list/internal/repository"
 	"view-list/internal/service"
 
@@ -9,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func NewRouter(db *mongo.Database) *fiber.App {
+func NewRouter(db *mongo.Database, staticDir string) *fiber.App {
 	app := fiber.New()
 
 	// --- CORS ---
@@ -36,22 +37,30 @@ func NewRouter(db *mongo.Database) *fiber.App {
 		return c.SendString("OK")
 	})
 
-	// --- Public routes ---
+	// --- Auth (público) ---
 	auth := app.Group("/auth")
 	auth.Post("/register", userHandler.Register)
 	auth.Post("/login", userHandler.Login)
 
-	// --- Protected routes ---
-	protected := app.Group("/", JWTMiddleware())
-	protected.Get("/me", userHandler.Me)
+	// --- Protected API ---
+	api := app.Group("/api", JWTMiddleware())
 
-	// --- Mangas (protected) ---
-	mangaGroup := protected.Group("/mangas")
+	api.Get("/me", userHandler.Me)
+
+	mangaGroup := api.Group("/mangas")
 	mangaGroup.Post("/", mangaHandler.CreateManga)
 	mangaGroup.Get("/", mangaHandler.GetMangas)
 	mangaGroup.Get("/:id", mangaHandler.GetManga)
 	mangaGroup.Put("/:id", mangaHandler.UpdateManga)
 	mangaGroup.Delete("/:id", mangaHandler.DeleteManga)
+
+	// --- Frontend estático ---
+	if staticDir != "" {
+		app.Static("/", staticDir)
+		app.Get("/*", func(c *fiber.Ctx) error {
+			return c.SendFile(filepath.Join(staticDir, "index.html"))
+		})
+	}
 
 	return app
 }
