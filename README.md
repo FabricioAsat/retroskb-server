@@ -15,47 +15,6 @@ En modo desarrollo, el frontend se ejecuta con **Vite** y consume la API del bac
 
 ---
 
-## 🧠 Arquitectura del proyecto
-
-Retroskb/
-│
-├── cmd/
-│ └── server/
-│ └── main.go # Punto de entrada del backend
-│
-├── internal/
-│ ├── domain/ # Entidades del dominio y contratos (interfaces)
-│ │ ├── interfaces.go
-│ │ └── models.go
-│ │
-│ ├── repository/ # Capa de acceso a datos (MongoDB)
-│ │ ├── mongo_manga.go
-│ │ └── mongo_user.go
-│ │
-│ ├── service/ # Lógica de negocio (casos de uso)
-│ │ ├── manga_service.go
-│ │ └── user_service.go
-│ │
-│ ├── transport/
-│ │ └── http/ # Handlers HTTP, rutas y middlewares
-│ │ ├── manga_handler.go
-│ │ ├── user_handler.go
-│ │ ├── middleware.go
-│ │ └── router.go
-│ │
-│ └── utils/
-│ └── validators.go # Validaciones generales
-│
-├── web/
-│ ├── dist/ # Build del frontend (sirve el backend en prod)
-│ └── src/ # Código fuente de React
-│
-├── .env # Variables de entorno
-├── test_body.json # Archivo auxiliar para pruebas
-└── README.md
-
-
----
 
 ## ⚙️ Tecnologías utilizadas
 
