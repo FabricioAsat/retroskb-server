@@ -50,6 +50,7 @@ JWT_SECRET=tu_secreto_super_seguro
 
 # Frontend
 APP_ENV=dev       # usa "prod" para servir el frontend
+```
 
 ---
 
@@ -91,16 +92,18 @@ con persistencia en `mongo_manga.go`.
 ```bash
 cd cmd/server
 go run main.go
+```
 
 ### 2️⃣ Frontend
 ```bash
 cd cmd/server
 go run main.go
+```
 
 ```bash
 npm run build
 # El backend servirá automáticamente el contenido de web/dist
-
+```
 
 ---
 
