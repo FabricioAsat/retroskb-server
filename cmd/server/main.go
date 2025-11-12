@@ -31,7 +31,6 @@ func openBrowser(url string) {
 	args = append(args, url)
 	exec.Command(cmd, args...).Start()
 }
-
 func main() {
 	staticDir := ""
 	// 1. Cargar .env
@@ -52,7 +51,12 @@ func main() {
 			log.Fatal(err)
 		}
 		baseDir := filepath.Dir(exePath)
-		staticDir = filepath.Join(baseDir, "web", "dist")
+		relativePath := filepath.Join(".", "web", "dist")
+		if _, err := os.Stat(relativePath); err == nil {
+			staticDir = relativePath
+		} else {
+			staticDir = filepath.Join(baseDir, "web", "dist")
+		}
 	}
 
 	uri := os.Getenv("MONGODB_URI")
@@ -61,11 +65,11 @@ func main() {
 	}
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "4096"
+		port = "4090"
 	}
 	dbName := os.Getenv("DB_NAME")
 	if dbName == "" {
-		dbName = "eukalipto"
+		dbName = "retroskb"
 	}
 
 	// 2. Conectar Mongo
