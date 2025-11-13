@@ -54,6 +54,10 @@ func NewRouter(db *mongo.Database, staticDir string) *fiber.App {
 	mangaGroup.Put("/:id", mangaHandler.UpdateManga)
 	mangaGroup.Delete("/:id", mangaHandler.DeleteManga)
 
+	backupGroup := api.Group("/backup")
+	backupGroup.Get("/", mangaHandler.ExportUserMangas)
+	backupGroup.Post("/", mangaHandler.ImportUserMangas)
+
 	// --- Frontend estático ---
 	if staticDir != "" {
 		app.Static("/", staticDir)

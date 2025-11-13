@@ -78,3 +78,48 @@ func (s *MangaService) Delete(ctx context.Context, id primitive.ObjectID) error 
 
 	return s.mgRepo.Delete(ctx, id)
 }
+
+func (s *MangaService) ExportUserMangas(ctx context.Context, userID string) ([]byte, error) {
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	mangas, err := s.mgRepo.List(ctx, objID)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := bson.Marshal(bson.M{"mangas": mangas})
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func (s *MangaService) ImportUserMangas(ctx context.Context, userID string, data []byte) error {
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	var wrapper struct {
+		Mangas []domain.Manga `bson:"mangas"`
+	}
+
+	if err := bson.Unmarshal(data, &wrapper); err != nil {
+		return err
+	}
+
+	for i := range wrapper.Mangas {
+		wrapper.Mangas[i].ID = primitive.NilObjectID
+		wrapper.Mangas[i].UserID = objID
+	}
+
+	if err := s.mgRepo.BulkInsert(ctx, wrapper.Mangas); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -37,6 +37,11 @@ type User struct {
 	DateOfBirth time.Time          `bson:"date_of_birth,omitempty" json:"date_of_birth"`
 }
 
+type UserBakup struct {
+	User   User    `bson:"user" json:"user"`
+	Mangas []Manga `bson:"mangas" json:"mangas"`
+}
+
 func IsValidMangaState(s MangaState) bool {
 	switch s {
 	case MangaStateReading,

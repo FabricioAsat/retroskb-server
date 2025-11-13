@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"os"
 	"time"
 	"view-list/internal/domain"
@@ -34,10 +33,8 @@ type loginRequest struct {
 
 // POST /register
 func (h *UserHandler) Register(c *fiber.Ctx) error {
-
 	var req registerRequest
 	if err := c.BodyParser(&req); err != nil {
-		fmt.Println(req)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error(), "test": req})
 	}
 

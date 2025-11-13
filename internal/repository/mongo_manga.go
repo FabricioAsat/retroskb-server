@@ -30,6 +30,7 @@ func (r *MongoMangaRepo) GetByID(ctx context.Context, id primitive.ObjectID) (*d
 	return &manga, nil
 }
 
+// Esto trae por user_id mediante jwt, no me trae todos,
 func (r *MongoMangaRepo) List(ctx context.Context, userID primitive.ObjectID) ([]domain.Manga, error) {
 	filter := bson.M{"user_id": userID}
 	var mangas []domain.Manga
@@ -51,5 +52,15 @@ func (r *MongoMangaRepo) Update(ctx context.Context, id primitive.ObjectID, upda
 
 func (r *MongoMangaRepo) Delete(ctx context.Context, id primitive.ObjectID) error {
 	_, err := r.db.DeleteOne(ctx, bson.M{"_id": id})
+	return err
+}
+
+// Este inserta todos los mangas del binario
+func (r *MongoMangaRepo) BulkInsert(ctx context.Context, mangas []domain.Manga) error {
+	docs := make([]any, len(mangas))
+	for i, m := range mangas {
+		docs[i] = m
+	}
+	_, err := r.db.InsertMany(ctx, docs)
 	return err
 }

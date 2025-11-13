@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -10,8 +9,6 @@ import (
 )
 
 func JWTMiddleware() fiber.Handler {
-	fmt.Println("Resetando JWT Middleware")
-
 	secret := []byte(os.Getenv(("JWT_SECRET")))
 	if secret == nil {
 		secret = []byte("en-mi-opinion-profesional-es-timpo-para-PANICO")

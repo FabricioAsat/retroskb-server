@@ -13,6 +13,7 @@ type MangaRepo interface {
 	List(ctx context.Context, userID primitive.ObjectID) ([]Manga, error)
 	Update(ctx context.Context, id primitive.ObjectID, updates bson.M) error
 	Delete(ctx context.Context, id primitive.ObjectID) error
+	BulkInsert(ctx context.Context, mangas []Manga) error // Inserta todos los mangas del bson
 }
 
 // -------------------- USERS --------------------
