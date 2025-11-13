@@ -11,7 +11,9 @@ import (
 )
 
 func NewRouter(db *mongo.Database, staticDir string) *fiber.App {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit: 100 * 1024 * 1024, // 100 MB, si hay más tira error
+	})
 
 	// --- CORS ---
 	app.Use(cors.New(cors.Config{
