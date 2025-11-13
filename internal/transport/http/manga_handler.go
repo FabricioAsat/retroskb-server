@@ -1,10 +1,13 @@
 package http
 
 import (
+	"fmt"
 	"io"
+	"strings"
 	"time"
 	"view-list/internal/domain"
 	"view-list/internal/service"
+	"view-list/internal/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
@@ -46,6 +49,19 @@ func (h *MangaHandler) CreateManga(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	if strings.HasPrefix(req.Image, "data:image") {
+		url, err := utils.SaveBase64ImageForUser(req.Image, userID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save image"})
+		}
+		req.Image = url
+	}
+
 	manga := &domain.Manga{
 		ID:          primitive.NewObjectID(),
 		Name:        req.Name,
@@ -57,11 +73,6 @@ func (h *MangaHandler) CreateManga(c *fiber.Ctx) error {
 		Genre:       req.Genre,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
-	}
-
-	userID, ok := c.Locals("user_id").(string)
-	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
 	if err := h.svc.Create(c.Context(), manga, userID); err != nil {
@@ -107,6 +118,11 @@ func (h *MangaHandler) UpdateManga(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
 	var req updateMangaRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -123,9 +139,6 @@ func (h *MangaHandler) UpdateManga(c *fiber.Ctx) error {
 	if req.Chapter != nil {
 		updates["chapter"] = *req.Chapter
 	}
-	if req.Image != nil {
-		updates["image"] = *req.Image
-	}
 	if req.Link != nil {
 		updates["link"] = *req.Link
 	}
@@ -135,6 +148,29 @@ func (h *MangaHandler) UpdateManga(c *fiber.Ctx) error {
 	if req.Genre != nil {
 		updates["genre"] = *req.Genre
 	}
+	if req.Image != nil {
+		if strings.HasPrefix(*req.Image, "data:image") {
+			oldManga, err := h.svc.GetByID(c.Context(), id)
+			if err == nil && oldManga.Image != "" {
+				// Borrar la imagen vieja de forma asíncrona
+				oldImagePath := "." + oldManga.Image // Agregar "./" si es necesario
+				go func() {
+					time.Sleep(200 * time.Millisecond)
+					if err := utils.DeleteFileWithRetry(oldImagePath, 8); err != nil {
+						fmt.Printf("warning: error deleting old image %s: %v\n", oldImagePath, err)
+					}
+				}()
+			}
+
+			// Guardar la nueva imagen en la carpeta del usuario
+			url, err := utils.SaveBase64ImageForUser(*req.Image, userID)
+			if err != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to save image"})
+			}
+			updates["image"] = url
+		}
+	}
+
 	updates["updated_at"] = time.Now()
 
 	if err := h.svc.Update(c.Context(), id, updates); err != nil {

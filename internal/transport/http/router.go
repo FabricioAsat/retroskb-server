@@ -12,7 +12,7 @@ import (
 
 func NewRouter(db *mongo.Database, staticDir string) *fiber.App {
 	app := fiber.New(fiber.Config{
-		BodyLimit: 100 * 1024 * 1024, // 100 MB, si hay más tira error
+		BodyLimit: 20 * 1024 * 1024, // 100 MB, si hay más tira error
 	})
 
 	// --- CORS ---
@@ -60,6 +60,16 @@ func NewRouter(db *mongo.Database, staticDir string) *fiber.App {
 	backupGroup := api.Group("/backup")
 	backupGroup.Get("/", mangaHandler.ExportUserMangas)
 	backupGroup.Post("/", mangaHandler.ImportUserMangas)
+
+	// --- Servir imágenes subidas ---
+	app.Static("/uploads", "./uploads", fiber.Static{
+		Compress:      true,
+		ByteRange:     true,
+		Browse:        false,
+		Index:         "",
+		CacheDuration: -1, // Importante: deshabilitar caché
+		MaxAge:        0,
+	})
 
 	// --- Frontend estático ---
 	if staticDir != "" {

@@ -4,7 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"strings"
+	"time"
 	"view-list/internal/domain"
+	"view-list/internal/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -71,10 +75,21 @@ func (s *MangaService) Update(ctx context.Context, id primitive.ObjectID, update
 
 func (s *MangaService) Delete(ctx context.Context, id primitive.ObjectID) error {
 	// 1.0 Valido que el manga exista
-	_, err := s.mgRepo.GetByID(ctx, id)
+	manga, err := s.mgRepo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
+
+	if manga.Image != "" && strings.HasPrefix(manga.Image, "/uploads/") {
+		filePath := "." + manga.Image
+		go func() {
+			time.Sleep(200 * time.Millisecond) // Más rápido pero suficiente
+			if err := utils.DeleteFileWithRetry(filePath, 8); err != nil {
+				log.Printf("warning: error deleting file %s: %v\n", filePath, err)
+			}
+		}()
+	}
+
 	return s.mgRepo.Delete(ctx, id)
 }
 
@@ -84,7 +99,15 @@ func (s *MangaService) DeleteAll(ctx context.Context, userID string) error {
 		return err
 	}
 
-	return s.mgRepo.DeleteAll(ctx, objID)
+	// 1. borro los datos de monog
+	if err := s.mgRepo.DeleteAll(ctx, objID); err != nil {
+		return err
+	}
+
+	// 2. Borrar archivos de forma asíncrona (no bloquea la respuesta)
+	utils.RemoveUserUploadsAsync(userID)
+
+	return nil
 }
 
 func (s *MangaService) ExportUserMangas(ctx context.Context, userID string) ([]byte, error) {
@@ -96,6 +119,15 @@ func (s *MangaService) ExportUserMangas(ctx context.Context, userID string) ([]b
 	mangas, err := s.mgRepo.List(ctx, objID)
 	if err != nil {
 		return nil, err
+	}
+
+	for i := range mangas {
+		if mangas[i].Image != "" {
+			b64, err := utils.ImageToBase64(mangas[i].Image)
+			if err == nil {
+				mangas[i].Image = b64
+			}
+		}
 	}
 
 	data, err := bson.Marshal(bson.M{"mangas": mangas})
@@ -121,10 +153,30 @@ func (s *MangaService) ImportUserMangas(ctx context.Context, userID string, data
 	}
 
 	for i := range wrapper.Mangas {
-		wrapper.Mangas[i].ID = primitive.NilObjectID
-		wrapper.Mangas[i].UserID = objID
+		m := &wrapper.Mangas[i]
+
+		// ⚙️ Si viene una imagen base64, la guardamos en disco
+		if strings.HasPrefix(m.Image, "data:image/") {
+			// 🧹 Limpiar posibles saltos de línea o espacios
+			clean := strings.ReplaceAll(m.Image, "\n", "")
+			clean = strings.ReplaceAll(clean, "\r", "")
+			clean = strings.TrimSpace(clean)
+
+			imgPath, err := utils.SaveBase64ImageForUser(clean, userID)
+			if err != nil {
+				fmt.Printf("❌ Error saving image for manga %s: %v\n", m.Name, err)
+				m.Image = "" // limpiar si falló
+			} else {
+				m.Image = imgPath
+			}
+		}
+
+		// limpiar IDs y asignar usuario actual
+		m.ID = primitive.NilObjectID
+		m.UserID = objID
 	}
 
+	// insertar todos
 	if err := s.mgRepo.BulkInsert(ctx, wrapper.Mangas); err != nil {
 		return err
 	}
