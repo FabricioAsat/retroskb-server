@@ -158,6 +158,19 @@ func (h *MangaHandler) DeleteManga(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Manga deleted successfully!"})
 }
 
+func (h *MangaHandler) DeleteAllMangas(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	if err := h.svc.DeleteAll(c.Context(), userID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Mangas deleted successfully!"})
+}
+
 // Exporta un bson al front
 func (h *MangaHandler) ExportUserMangas(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(string)

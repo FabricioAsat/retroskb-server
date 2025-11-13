@@ -55,6 +55,11 @@ func (r *MongoMangaRepo) Delete(ctx context.Context, id primitive.ObjectID) erro
 	return err
 }
 
+func (r *MongoMangaRepo) DeleteAll(ctx context.Context, userID primitive.ObjectID) error {
+	_, err := r.db.DeleteMany(ctx, bson.M{"user_id": userID})
+	return err
+}
+
 // Este inserta todos los mangas del binario
 func (r *MongoMangaRepo) BulkInsert(ctx context.Context, mangas []domain.Manga) error {
 	docs := make([]any, len(mangas))

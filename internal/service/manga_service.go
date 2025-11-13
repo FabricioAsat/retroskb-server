@@ -75,8 +75,16 @@ func (s *MangaService) Delete(ctx context.Context, id primitive.ObjectID) error 
 	if err != nil {
 		return err
 	}
-
 	return s.mgRepo.Delete(ctx, id)
+}
+
+func (s *MangaService) DeleteAll(ctx context.Context, userID string) error {
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+
+	return s.mgRepo.DeleteAll(ctx, objID)
 }
 
 func (s *MangaService) ExportUserMangas(ctx context.Context, userID string) ([]byte, error) {

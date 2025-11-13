@@ -55,6 +55,7 @@ func NewRouter(db *mongo.Database, staticDir string) *fiber.App {
 	mangaGroup.Get("/:id", mangaHandler.GetManga)
 	mangaGroup.Put("/:id", mangaHandler.UpdateManga)
 	mangaGroup.Delete("/:id", mangaHandler.DeleteManga)
+	mangaGroup.Delete("/", mangaHandler.DeleteAllMangas)
 
 	backupGroup := api.Group("/backup")
 	backupGroup.Get("/", mangaHandler.ExportUserMangas)
