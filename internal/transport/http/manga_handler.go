@@ -88,7 +88,10 @@ func (h *MangaHandler) GetMangas(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	mangas, err := h.svc.ListAll(c.Context(), userID)
+	state := c.Query("state")
+	search := c.Query("search")
+
+	mangas, err := h.svc.ListAll(c.Context(), userID, state, search)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

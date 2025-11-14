@@ -10,7 +10,7 @@ import (
 type MangaRepo interface {
 	Create(ctx context.Context, manga *Manga) error
 	GetByID(ctx context.Context, id primitive.ObjectID) (*Manga, error)
-	List(ctx context.Context, userID primitive.ObjectID) ([]Manga, error)
+	List(ctx context.Context, userID primitive.ObjectID, state, search string) ([]Manga, error)
 	Update(ctx context.Context, id primitive.ObjectID, updates bson.M) error
 	Delete(ctx context.Context, id primitive.ObjectID) error
 	DeleteAll(ctx context.Context, id primitive.ObjectID) error

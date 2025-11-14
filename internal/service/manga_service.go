@@ -46,12 +46,12 @@ func (s *MangaService) GetByID(ctx context.Context, id primitive.ObjectID) (*dom
 	return s.mgRepo.GetByID(ctx, id)
 }
 
-func (s *MangaService) ListAll(ctx context.Context, userID string) ([]domain.Manga, error) {
+func (s *MangaService) ListAll(ctx context.Context, userID, state, search string) ([]domain.Manga, error) {
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, err
 	}
-	return s.mgRepo.List(ctx, objID)
+	return s.mgRepo.List(ctx, objID, state, search)
 }
 
 func (s *MangaService) Update(ctx context.Context, id primitive.ObjectID, updates bson.M) error {
@@ -116,7 +116,7 @@ func (s *MangaService) ExportUserMangas(ctx context.Context, userID string) ([]b
 		return nil, err
 	}
 
-	mangas, err := s.mgRepo.List(ctx, objID)
+	mangas, err := s.mgRepo.List(ctx, objID, "", "")
 	if err != nil {
 		return nil, err
 	}

@@ -31,8 +31,20 @@ func (r *MongoMangaRepo) GetByID(ctx context.Context, id primitive.ObjectID) (*d
 }
 
 // Esto trae por user_id mediante jwt, no me trae todos,
-func (r *MongoMangaRepo) List(ctx context.Context, userID primitive.ObjectID) ([]domain.Manga, error) {
+func (r *MongoMangaRepo) List(ctx context.Context, userID primitive.ObjectID, state, search string) ([]domain.Manga, error) {
 	filter := bson.M{"user_id": userID}
+
+	if state != "" {
+		filter["state"] = state
+	}
+
+	if search != "" {
+		filter["name"] = bson.M{
+			"$regex":   search,
+			"$options": "i", // quito el case sensitive
+		}
+	}
+
 	var mangas []domain.Manga
 	cursor, err := r.db.Find(ctx, filter)
 	if err != nil {
