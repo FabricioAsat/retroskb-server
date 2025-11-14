@@ -12,6 +12,7 @@ import (
 
 // guarda una imagen base64 dentro de la carpeta del usuario y devuelve la URL pública.
 func SaveBase64ImageForUser(base64Data, userID string) (string, error) {
+	backendURL := os.Getenv("BACKEND_URL_WITHOUT_PORT") + os.Getenv("PORT")
 	if base64Data == "" {
 		return "", nil
 	}
@@ -61,8 +62,7 @@ func SaveBase64ImageForUser(base64Data, userID string) (string, error) {
 		return "", err
 	}
 
-	// devolver la ruta relativa (la que servirás con Fiber)
-	return "/" + filepath.ToSlash(fullPath), nil
+	return backendURL + "/" + filepath.ToSlash(fullPath), nil
 }
 
 func ImageToBase64(path string) (string, error) {
