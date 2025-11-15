@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoMangaRepo struct {
@@ -45,8 +46,11 @@ func (r *MongoMangaRepo) List(ctx context.Context, userID primitive.ObjectID, st
 		}
 	}
 
+	// Ordenar por fecha (descendente, más recientes primero)
+	opts := options.Find().SetSort(bson.M{"updated_at": -1})
+
 	var mangas []domain.Manga
-	cursor, err := r.db.Find(ctx, filter)
+	cursor, err := r.db.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}
