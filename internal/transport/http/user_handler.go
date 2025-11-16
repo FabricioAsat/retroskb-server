@@ -89,8 +89,13 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 func (h *UserHandler) Me(c *fiber.Ctx) error {
 	userID, ok := c.Locals("user_id").(string)
 	if !ok {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	return c.JSON(fiber.Map{"user_id": userID})
+	user, err := h.service.GetByID(c.Context(), userID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": user, "message": "User retrieved successfully!"})
 }

@@ -5,6 +5,7 @@ import (
 	"view-list/internal/domain"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -24,6 +25,16 @@ func (r *MongoUserRepo) Create(ctx context.Context, user *domain.User) error {
 func (r *MongoUserRepo) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var u domain.User
 	err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&u)
+	if err != nil {
+		return nil, err
+	}
+
+	return &u, nil
+}
+
+func (r *MongoUserRepo) GetByID(ctx context.Context, id primitive.ObjectID) (*domain.User, error) {
+	var u domain.User
+	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&u)
 	if err != nil {
 		return nil, err
 	}

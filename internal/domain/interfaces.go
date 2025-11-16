@@ -22,9 +22,11 @@ type MangaRepo interface {
 type UserRepo interface {
 	Create(ctx context.Context, user *User) error
 	GetByEmail(ctx context.Context, email string) (*User, error)
+	GetByID(ctx context.Context, id primitive.ObjectID) (*User, error)
 }
 
 type UserService interface {
 	Register(ctx context.Context, user *User) error
 	Login(ctx context.Context, email, password string) (*User, error)
+	GetByID(ctx context.Context, id string) (*User, error)
 }

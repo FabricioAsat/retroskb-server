@@ -5,6 +5,7 @@ import (
 	"errors"
 	"view-list/internal/domain"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,4 +40,13 @@ func (s *userService) Login(ctx context.Context, email, password string) (*domai
 	}
 
 	return user, nil
+}
+
+func (s *userService) GetByID(ctx context.Context, id string) (*domain.User, error) {
+	ObjID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.uRepo.GetByID(ctx, ObjID)
 }
