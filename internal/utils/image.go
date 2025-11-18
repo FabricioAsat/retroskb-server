@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/base64"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -70,16 +71,24 @@ func ImageToBase64(path string) (string, error) {
 		return "", nil
 	}
 
-	// Asegurar que el path sea local
-	p := filepath.Clean("." + path)
-
-	data, err := os.ReadFile(p)
+	// Extraer el path de la URL
+	parsedURL, err := url.Parse(path)
 	if err != nil {
 		return "", err
 	}
 
-	// Inferir el tipo MIME por extensión
+	// Remover prefijo /uploads/ si tu carpeta local se llama "uploads"
+	localPath := strings.TrimPrefix(parsedURL.Path, "/")
+
+	// Limpiar y leer el archivo
+	p := filepath.Clean(localPath)
+	data, err := os.ReadFile(p)
+	if err != nil {
+		return "", fmt.Errorf("error reading file %s: %w", p, err)
+	}
+
 	ext := strings.ToLower(filepath.Ext(p))
+
 	var mime string
 	switch ext {
 	case ".jpg", ".jpeg":

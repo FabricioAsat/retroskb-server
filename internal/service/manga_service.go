@@ -124,6 +124,7 @@ func (s *MangaService) ExportUserMangas(ctx context.Context, userID string) ([]b
 	for i := range mangas {
 		if mangas[i].Image != "" {
 			b64, err := utils.ImageToBase64(mangas[i].Image)
+
 			if err == nil {
 				mangas[i].Image = b64
 			}
