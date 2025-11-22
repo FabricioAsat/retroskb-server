@@ -74,7 +74,6 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	// Generar el token jwt
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.ID.Hex(),
-		"exp":     time.Now().Add(72 * time.Hour).Unix(),
 	})
 
 	tokenString, err := token.SignedString(h.jwtSecret)
